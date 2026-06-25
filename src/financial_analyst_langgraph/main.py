@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from financial_analyst_langgraph.config import load_settings
-from financial_analyst_langgraph.database import get_schema_summary, seed_sample_company
+from financial_analyst_langgraph.database import seed_sample_company
+from financial_analyst_langgraph.graph import build_graph
 
 
 def main() -> None:
@@ -24,12 +25,21 @@ def main() -> None:
 
         if choice == "1":
             company_id = seed_sample_company(settings.database_path)
+            graph = build_graph()
+            result = graph.invoke(
+                {
+                    "database_path": str(settings.database_path),
+                    "user_question": "What financial data is available?",
+                }
+            )
+
             print("\nSample company loaded.")
             print(f"Company ID: {company_id}")
             print(f"Database path: {settings.database_path}")
             print("\nDatabase schema:")
-            print(get_schema_summary(settings.database_path))
-            print("\nNext step: we will add the LangGraph state and first graph node.")
+            print(result["schema_summary"])
+            print("\nLangGraph ran one node: inspect_schema.")
+            print("Next step: we will add a node that accepts a financial question.")
             return
 
         if choice == "2":
