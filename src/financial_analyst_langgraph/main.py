@@ -25,11 +25,25 @@ def main() -> None:
 
         if choice == "1":
             company_id = seed_sample_company(settings.database_path)
-            graph = build_graph()
+            if not settings.openai_api_key:
+                print("\nOpenAI API key not found.")
+                print("Create a .env file from .env.example and add OPENAI_API_KEY.")
+                return
+
+            user_question = input(
+                "\nAsk a financial question about Sample Manufacturing Co.\n> "
+            ).strip()
+            if not user_question:
+                user_question = "Show revenue growth over the last five years."
+
+            graph = build_graph(
+                openai_api_key=settings.openai_api_key,
+                openai_model=settings.openai_model,
+            )
             result = graph.invoke(
                 {
                     "database_path": str(settings.database_path),
-                    "user_question": "What financial data is available?",
+                    "user_question": user_question,
                 }
             )
 
@@ -38,8 +52,24 @@ def main() -> None:
             print(f"Database path: {settings.database_path}")
             print("\nDatabase schema:")
             print(result["schema_summary"])
-            print("\nLangGraph ran one node: inspect_schema.")
-            print("Next step: we will add a node that accepts a financial question.")
+            print("\nQuestion classification:")
+            print(f"Intent: {result['question_intent']}")
+            print(f"Response format: {result['response_format']}")
+            print(f"Relevant tables: {', '.join(result['relevant_tables'])}")
+            print(f"Reasoning: {result['classification_reasoning']}")
+            print("\nGenerated SQL:")
+            print(result["sql_query"])
+            print(f"SQL safety: {'safe' if result['sql_is_safe'] else 'unsafe'}")
+            if result["sql_validation_error"]:
+                print(f"SQL validation error: {result['sql_validation_error']}")
+            print("\nQuery result:")
+            print(result["query_result"])
+            print("\nFinal answer:")
+            print(result["final_answer"])
+            print(
+                "\nLangGraph ran: inspect_schema -> classify_question -> "
+                "generate_sql -> validate_sql -> execute_sql -> write_final_answer."
+            )
             return
 
         if choice == "2":

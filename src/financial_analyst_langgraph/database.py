@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 
 SCHEMA_SQL = """
@@ -368,6 +369,14 @@ def get_schema_summary(database_path: Path) -> str:
             summary_lines.append(f"- {table_name}: {column_names}")
 
         return "\n".join(summary_lines)
+
+
+def execute_read_query(database_path: Path, sql_query: str) -> list[dict[str, Any]]:
+    """Execute a read-only SQL query and return rows as dictionaries."""
+
+    with connect(database_path) as connection:
+        rows = connection.execute(sql_query).fetchall()
+        return [dict(row) for row in rows]
 
 
 def _upsert_sample_company(connection: sqlite3.Connection) -> int:

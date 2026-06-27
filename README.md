@@ -89,6 +89,7 @@ Then add your OpenAI API key to `.env`:
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4.1-mini
 ```
 
 Alpha Vantage support is planned as an optional data source:
@@ -142,6 +143,26 @@ free_cash_flow = operating_cash_flow + capex
 ```
 
 In this project, `capex` is stored as a negative cash outflow.
+
+The current LangGraph workflow runs:
+
+```text
+inspect_schema
+-> classify_question
+-> generate_sql
+-> validate_sql
+-> execute_sql
+-> write_final_answer
+```
+
+The `inspect_schema` node reads SQLite table/column metadata. The `classify_question` node uses OpenAI to classify the user's question into:
+
+- intent: `metric`, `trend`, `table`, `explanation`, or `unknown`
+- response format: `answer`, `table`, `bar_chart`, or `line_chart`
+- relevant database tables
+- short reasoning
+
+The `generate_sql` node uses OpenAI to write one SQLite query. The `validate_sql` node checks that the query is a single read-only `SELECT` or `WITH` statement before execution. The `execute_sql` node runs the query against SQLite. The `write_final_answer` node uses OpenAI to explain the returned rows in plain English.
 
 ## Git Quick Start
 

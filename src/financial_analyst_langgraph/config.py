@@ -1,7 +1,10 @@
 """Application configuration."""
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -12,13 +15,20 @@ class Settings:
     """Runtime settings for the financial analyst app."""
 
     database_path: Path = PROJECT_ROOT / "data" / "sample_financials.sqlite"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-4.1-mini"
 
 
 def load_settings() -> Settings:
     """Load app settings.
 
-    For now we keep configuration intentionally small. Later, this function can
-    read `.env` values such as OpenAI and Alpha Vantage API keys.
+    Values from `.env` stay local to your machine and are not committed to Git.
     """
 
-    return Settings()
+    load_dotenv(PROJECT_ROOT / ".env")
+
+    return Settings(
+        database_path=Path(os.getenv("DATABASE_PATH", PROJECT_ROOT / "data" / "sample_financials.sqlite")),
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        openai_model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
+    )
