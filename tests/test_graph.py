@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from financial_analyst_langgraph.database import execute_read_query, get_schema_summary, seed_sample_company
-from financial_analyst_langgraph.graph import execute_sql, inspect_schema, validate_sql
+from app.database import execute_read_query, get_schema_summary, seed_sample_company
+from app.graph import execute_sql, inspect_schema, validate_sql
 
 
 def test_inspect_schema_node_reads_database_schema(tmp_path: Path):
@@ -40,6 +40,13 @@ def test_validate_sql_rejects_write_statement():
     assert result["sql_is_safe"] is False
 
 
+def test_validate_sql_rejects_unsupported_sqlite_statistics_function():
+    result = validate_sql({"sql_query": "SELECT STDDEV_POP(revenue) FROM income_statements;"})
+
+    assert result["sql_is_safe"] is False
+    assert "SQLite does not provide" in result["sql_validation_error"]
+
+
 def test_execute_sql_returns_rows_from_seeded_database(tmp_path: Path):
     database_path = tmp_path / "sample_financials.sqlite"
     seed_sample_company(database_path)
@@ -63,6 +70,22 @@ def test_execute_sql_returns_rows_from_seeded_database(tmp_path: Path):
 
     assert result["query_result"][0] == {"year": 2020, "revenue": 820000.0}
     assert len(result["query_result"]) == 5
+
+
+def test_execute_sql_returns_error_instead_of_crashing(tmp_path: Path):
+    database_path = tmp_path / "sample_financials.sqlite"
+    seed_sample_company(database_path)
+
+    result = execute_sql(
+        {
+            "database_path": str(database_path),
+            "sql_query": "SELECT missing_column FROM income_statements",
+            "sql_is_safe": True,
+        }
+    )
+
+    assert result["query_result"] == []
+    assert "missing_column" in result["query_error"]
 
 
 def test_execute_read_query_returns_dict_rows(tmp_path: Path):

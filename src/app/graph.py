@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 from pydantic import BaseModel, Field
 
-from financial_analyst_langgraph.database import execute_read_query, get_schema_summary
+from app.database import execute_read_query, get_schema_summary
 
 
 QuestionIntent = Literal["metric", "trend", "table", "explanation", "unknown"]
@@ -36,6 +36,7 @@ class AnalystState(TypedDict, total=False):
     sql_is_safe: bool
     sql_validation_error: str
     query_result: list[dict[str, Any]]
+    query_error: str
     final_answer: str
 
 
@@ -118,7 +119,11 @@ def generate_sql(state: AnalystState, llm: ChatOpenAI) -> AnalystState:
                 "system",
                 "You write safe, read-only SQLite SELECT queries for a financial "
                 "analysis assistant. Return exactly one query. Do not use INSERT, "
-                "UPDATE, DELETE, DROP, ALTER, CREATE, PRAGMA, or multiple statements.",
+                "UPDATE, DELETE, DROP, ALTER, CREATE, PRAGMA, or multiple statements. "
+                "Use SQLite-supported functions only. SQLite does not support "
+                "STDDEV, STDDEV_POP, STDDEV_SAMP, VARIANCE, or PERCENTILE functions. "
+                "For coefficient of variation, calculate standard deviation manually "
+                "as sqrt(avg(x * x) - avg(x) * avg(x)), then divide by avg(x).",
             ),
             (
                 "human",
@@ -192,6 +197,23 @@ def validate_sql(state: AnalystState) -> AnalystState:
             "sql_validation_error": "The query contains a forbidden write/admin operation.",
         }
 
+    unsupported_functions = (
+        "stddev",
+        "stddev_pop",
+        "stddev_samp",
+        "variance",
+        "percentile",
+    )
+    unsupported_pattern = r"\b(" + "|".join(unsupported_functions) + r")\s*\("
+    if re.search(unsupported_pattern, normalized_query):
+        return {
+            "sql_is_safe": False,
+            "sql_validation_error": (
+                "The query uses a statistical function that SQLite does not provide. "
+                "Use SQLite arithmetic such as sqrt(avg(x * x) - avg(x) * avg(x)) instead."
+            ),
+        }
+
     return {"sql_query": sql_query, "sql_is_safe": True, "sql_validation_error": ""}
 
 
@@ -199,10 +221,16 @@ def execute_sql(state: AnalystState) -> AnalystState:
     """Run the validated SQL query against SQLite."""
 
     if not state["sql_is_safe"]:
-        return {"query_result": []}
+        return {"query_result": [], "query_error": ""}
 
     database_path = Path(state["database_path"])
-    return {"query_result": execute_read_query(database_path, state["sql_query"])}
+    try:
+        return {
+            "query_result": execute_read_query(database_path, state["sql_query"]),
+            "query_error": "",
+        }
+    except Exception as error:
+        return {"query_result": [], "query_error": str(error)}
 
 
 def write_final_answer(state: AnalystState, llm: ChatOpenAI) -> AnalystState:
@@ -213,6 +241,14 @@ def write_final_answer(state: AnalystState, llm: ChatOpenAI) -> AnalystState:
             "final_answer": (
                 "I did not run the SQL query because it failed the read-only safety check: "
                 f"{state['sql_validation_error']}"
+            )
+        }
+
+    if state.get("query_error"):
+        return {
+            "final_answer": (
+                "I tried to run the generated SQL, but SQLite returned an error: "
+                f"{state['query_error']}. The query needs to be revised."
             )
         }
 

@@ -1,6 +1,6 @@
 # LangGraph Financial Analyst
 
-A Python portfolio project that uses LangGraph, SQLite, and OpenAI to answer natural-language questions about financial statements.
+A Python portfolio project that uses LangGraph, FastAPI, React, SQLite, and OpenAI to answer natural-language questions about financial statements.
 
 The assistant can work with bundled sample data or, in a later version, fetch company financial statements from Alpha Vantage when the user provides an API key and ticker symbol.
 
@@ -35,8 +35,9 @@ User question
 - LangChain
 - OpenAI API
 - SQLite
-- Rich or Textual for an initial terminal interface
-- Streamlit or React/FastAPI for a later visual frontend
+- FastAPI
+- React
+- uv
 
 ## Project Structure
 
@@ -44,18 +45,22 @@ User question
 .
 ├── data/
 │   └── .gitkeep
-├── docs/
-│   └── .gitkeep
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.js
 ├── scripts/
 │   ├── .gitkeep
 │   └── seed_sample_data.py
 ├── src/
-│   └── financial_analyst_langgraph/
+│   └── app/
 │       ├── __init__.py
 │       ├── __main__.py
 │       ├── config.py
 │       ├── database.py
-│       └── main.py
+│       ├── graph.py
+│       ├── main.py
+│       └── static/
 ├── tests/
 │   └── .gitkeep
 ├── .env.example
@@ -66,17 +71,18 @@ User question
 
 ## Setup
 
-Create and activate a virtual environment:
+This project is designed to run with `uv`, which creates and manages the virtual environment for you.
+
+Install `uv` if needed:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Install the project in editable mode:
+Install dependencies:
 
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
 Create a local environment file:
@@ -104,16 +110,16 @@ This repository is being built as a learning project. The first version will foc
 
 ## Run The App
 
-During early development, run the app with the `src` folder on the Python path:
+Run the full FastAPI + React app:
 
 ```bash
-PYTHONPATH=src python3 -m financial_analyst_langgraph
+uv run start
 ```
 
-Then choose:
+Then open:
 
 ```text
-1. Use sample company
+http://127.0.0.1:8000
 ```
 
 The app will create:
@@ -125,7 +131,41 @@ data/sample_financials.sqlite
 You can also seed the sample database directly:
 
 ```bash
-PYTHONPATH=src python3 scripts/seed_sample_data.py
+uv run python scripts/seed_sample_data.py
+```
+
+## Frontend
+
+FastAPI serves the built React app from:
+
+```text
+src/app/static/
+```
+
+The React source lives in:
+
+```text
+frontend/
+```
+
+If you change the frontend, rebuild it with:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+Then run the app again:
+
+```bash
+uv run start
+```
+
+Run tests:
+
+```bash
+uv run --extra dev pytest
 ```
 
 The sample database contains five years of annual data across:

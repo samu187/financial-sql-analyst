@@ -12,6 +12,7 @@ dist/
 .venv/
 venv/
 env/
+frontend/node_modules/
 
 # Environment variables
 .env
