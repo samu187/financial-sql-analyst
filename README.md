@@ -1,31 +1,27 @@
 # LangGraph Financial Analyst
 
-A Python portfolio project that uses LangGraph, FastAPI, React, SQLite, and OpenAI to answer natural-language questions about financial statements.
+A full-stack financial analysis assistant that uses LangGraph, OpenAI, FastAPI, React, and SQLite to answer natural-language questions about company financial statements.
 
-The assistant can work with bundled sample data or, in a later version, fetch company financial statements from Alpha Vantage when the user provides an API key and ticker symbol.
+The app converts a user's finance question into a safe read-only SQL query, runs it against a sample financial database, and explains the result in plain English.
 
-## Project Goals
+## Features
 
-- Teach LangGraph step by step through a practical automation project.
-- Convert natural-language finance questions into safe SQL queries.
-- Inspect database schema before querying.
-- Validate that generated SQL is read-only.
-- Calculate financial metrics such as revenue growth, margins, liquidity ratios, and free cash flow.
-- Return structured responses that can later be rendered as text, tables, bar charts, or line charts.
+- Natural-language financial analysis over SQLite data
+- LangGraph workflow with explicit analysis steps
+- OpenAI-powered question classification, SQL generation, and answer writing
+- Read-only SQL validation before execution
+- SQLite sample database with five years of financial statements
+- FastAPI backend serving both API routes and the built React frontend
+- One-command app startup with `uv run start`
+- React interface showing the answer, generated SQL, query result, and safety metadata
 
-## Planned Workflow
+## Example Questions
 
 ```text
-User question
-   -> classify intent
-   -> inspect database schema
-   -> plan analysis
-   -> generate SQL
-   -> validate SQL safety
-   -> execute SQL
-   -> calculate metrics
-   -> choose response format
-   -> produce final answer
+Show revenue growth over the last five years.
+What's the coefficient of variation of revenues and the average annual increase?
+Compare net income and free cash flow from 2020 to 2024.
+What is the current ratio for each year?
 ```
 
 ## Tech Stack
@@ -34,44 +30,82 @@ User question
 - LangGraph
 - LangChain
 - OpenAI API
-- SQLite
 - FastAPI
+- SQLite
 - React
+- Vite
 - uv
+
+## Architecture
+
+```text
+React frontend
+    |
+    v
+FastAPI /api/analyze
+    |
+    v
+LangGraph workflow
+    |
+    +--> inspect_schema
+    +--> classify_question
+    +--> generate_sql
+    +--> validate_sql
+    +--> execute_sql
+    +--> write_final_answer
+    |
+    v
+SQLite financial statements database
+```
+
+The graph returns a structured response containing the final answer, generated SQL, query result rows, SQL safety status, and relevant tables.
+
+## Data Model
+
+The sample SQLite database contains five years of annual financial statement data for a fictional company.
+
+Tables:
+
+- `companies`
+- `income_statements`
+- `balance_sheets`
+- `cash_flow_statements`
+
+Cash flow conventions:
+
+```text
+change_in_cash = operating_cash_flow + investing_cash_flow + financing_cash_flow
+free_cash_flow = operating_cash_flow + capex
+```
+
+`capex` is stored as a negative cash outflow.
 
 ## Project Structure
 
 ```text
 .
 ├── data/
-│   └── .gitkeep
 ├── frontend/
 │   ├── src/
 │   ├── package.json
 │   └── vite.config.js
 ├── scripts/
-│   ├── .gitkeep
 │   └── seed_sample_data.py
 ├── src/
 │   └── app/
-│       ├── __init__.py
-│       ├── __main__.py
 │       ├── config.py
 │       ├── database.py
 │       ├── graph.py
 │       ├── main.py
 │       └── static/
 ├── tests/
-│   └── .gitkeep
 ├── .env.example
-├── .gitignore
 ├── pyproject.toml
+├── uv.lock
 └── README.md
 ```
 
 ## Setup
-
-This project is designed to run with `uv`, which creates and manages the virtual environment for you.
 
 Install `uv` if needed:
 
@@ -91,76 +125,57 @@ Create a local environment file:
 cp .env.example .env
 ```
 
-Then add your OpenAI API key to `.env`:
+Add your OpenAI API key to `.env`:
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-Alpha Vantage support is planned as an optional data source:
-
-```bash
-ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key_here
-```
-
-## Development Notes
-
-This repository is being built as a learning project. The first version will focus on the LangGraph workflow and a local SQLite sample database. Once the graph is stable, a frontend can render the graph's structured output as text, tables, and charts.
-
 ## Run The App
 
-Run the full FastAPI + React app:
+Start the FastAPI server and React frontend:
 
 ```bash
 uv run start
 ```
 
-Then open:
+Open:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-The app will create:
+The app uses the bundled sample company data and creates the local SQLite database at:
 
 ```text
 data/sample_financials.sqlite
 ```
 
-You can also seed the sample database directly:
+## API
 
-```bash
-uv run python scripts/seed_sample_data.py
+Analyze a question:
+
+```http
+POST /api/analyze
 ```
 
-## Frontend
+Example request:
 
-FastAPI serves the built React app from:
-
-```text
-src/app/static/
+```json
+{
+  "question": "Show revenue growth over the last five years.",
+  "data_source": "sample"
+}
 ```
 
-The React source lives in:
+Health check:
 
-```text
-frontend/
+```http
+GET /api/health
 ```
 
-If you change the frontend, rebuild it with:
-
-```bash
-cd frontend
-npm install
-npm run build
-```
-
-Then run the app again:
-
-```bash
-uv run start
-```
+## Development
 
 Run tests:
 
@@ -168,64 +183,26 @@ Run tests:
 uv run --extra dev pytest
 ```
 
-The sample database contains five years of annual data across:
-
-- `companies`
-- `income_statements`
-- `balance_sheets`
-- `cash_flow_statements`
-
-For the cash flow statement:
-
-```text
-change_in_cash = operating_cash_flow + investing_cash_flow + financing_cash_flow
-free_cash_flow = operating_cash_flow + capex
-```
-
-In this project, `capex` is stored as a negative cash outflow.
-
-The current LangGraph workflow runs:
-
-```text
-inspect_schema
--> classify_question
--> generate_sql
--> validate_sql
--> execute_sql
--> write_final_answer
-```
-
-The `inspect_schema` node reads SQLite table/column metadata. The `classify_question` node uses OpenAI to classify the user's question into:
-
-- intent: `metric`, `trend`, `table`, `explanation`, or `unknown`
-- response format: `answer`, `table`, `bar_chart`, or `line_chart`
-- relevant database tables
-- short reasoning
-
-The `generate_sql` node uses OpenAI to write one SQLite query. The `validate_sql` node checks that the query is a single read-only `SELECT` or `WITH` statement before execution. The `execute_sql` node runs the query against SQLite. The `write_final_answer` node uses OpenAI to explain the returned rows in plain English.
-
-## Git Quick Start
-
-Check the repository status:
+Seed the sample database manually:
 
 ```bash
-git status
+uv run python scripts/seed_sample_data.py
 ```
 
-Stage files:
+Rebuild the frontend after editing React files:
 
 ```bash
-git add .
+cd frontend
+npm install
+npm run build
 ```
 
-Create a commit:
+Then restart the app:
 
 ```bash
-git commit -m "Initial project scaffold"
+uv run start
 ```
 
-View commit history:
+## Notes
 
-```bash
-git log --oneline
-```
+Ticker import via Alpha Vantage is included as a future extension point, but the current app uses bundled sample financial data so it can run immediately after setup.
