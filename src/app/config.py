@@ -16,7 +16,7 @@ class Settings:
 
     database_path: Path = PROJECT_ROOT / "data" / "sample_financials.sqlite"
     openai_api_key: str | None = None
-    openai_model: str = "gpt-4.1-mini"
+    openai_model: str = "gpt-5.4-mini"
 
 
 def load_settings() -> Settings:
@@ -30,5 +30,5 @@ def load_settings() -> Settings:
     return Settings(
         database_path=Path(os.getenv("DATABASE_PATH", PROJECT_ROOT / "data" / "sample_financials.sqlite")),
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        openai_model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
+        openai_model=os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
     )
