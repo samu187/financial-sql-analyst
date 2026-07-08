@@ -39,3 +39,4 @@ data/generated/
 
 # Logs
 *.log
+log.json

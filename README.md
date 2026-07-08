@@ -60,6 +60,14 @@ SQLite financial statements database
 
 The graph returns a structured response containing the final answer, generated SQL, query result rows, SQL safety status, and relevant tables.
 
+Each analysis request also writes a local debug trace to:
+
+```text
+log.json
+```
+
+The log includes every LangGraph node start/end event, structured OpenAI outputs, generated SQL, SQL execution row counts, query errors, and the final graph state.
+
 ## Data Model
 
 The sample SQLite database contains five years of annual financial statement data for a fictional company.
@@ -91,13 +99,13 @@ free_cash_flow = operating_cash_flow + capex
 │   └── vite.config.js
 ├── scripts/
 │   └── seed_sample_data.py
-├── src/
-│   └── app/
-│       ├── config.py
-│       ├── database.py
-│       ├── graph.py
-│       ├── main.py
-│       └── static/
+├── app/
+│   ├── config.py
+│   ├── database.py
+│   ├── graph.py
+│   ├── main.py
+│   ├── run_logger.py
+│   └── static/
 ├── tests/
 ├── .env.example
 ├── pyproject.toml
@@ -181,6 +189,12 @@ Run tests:
 
 ```bash
 uv run --extra dev pytest
+```
+
+If your local uv environment has a stale editable install after moving files around during development, run:
+
+```bash
+uv run --no-editable start
 ```
 
 Seed the sample database manually:

@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from app.config import load_settings
 from app.database import seed_sample_company
 from app.graph import build_graph
+from app.run_logger import RunLogger
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -37,6 +38,7 @@ class AnalyzeResponse(BaseModel):
     sql_validation_error: str
     question_intent: str
     relevant_tables: list[str]
+    debug_log_path: str
 
 
 def create_app() -> FastAPI:
@@ -68,16 +70,25 @@ def create_app() -> FastAPI:
             )
 
         seed_sample_company(settings.database_path)
+        logger = RunLogger(log_path=Path.cwd() / "log.json")
         graph = build_graph(
             openai_api_key=settings.openai_api_key,
             openai_model=settings.openai_model,
+            logger=logger,
         )
-        result = graph.invoke(
-            {
-                "database_path": str(settings.database_path),
-                "user_question": request.question,
-            }
-        )
+        try:
+            result = graph.invoke(
+                {
+                    "database_path": str(settings.database_path),
+                    "user_question": request.question,
+                }
+            )
+        except Exception as error:
+            logger.record("graph_error", error=str(error))
+            logger.write(final_state={"error": str(error)})
+            raise HTTPException(status_code=500, detail=str(error)) from error
+        else:
+            logger.write(final_state=result)
 
         return AnalyzeResponse(
             answer=result["final_answer"],
@@ -88,6 +99,7 @@ def create_app() -> FastAPI:
             sql_validation_error=result.get("sql_validation_error", ""),
             question_intent=result.get("question_intent", "unknown"),
             relevant_tables=result.get("relevant_tables", []),
+            debug_log_path=str(logger.log_path),
         )
 
     if STATIC_DIR.exists():

@@ -166,6 +166,9 @@ function App() {
                 Answer
               </div>
               <p>{result.answer}</p>
+              {result.debug_log_path && (
+                <p className="debug-note">Debug log written to {result.debug_log_path}</p>
+              )}
             </div>
 
             <div className="meta-grid">
