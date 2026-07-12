@@ -165,7 +165,7 @@ OPENAI_MODEL=gpt-4.1-mini
 Start the FastAPI server and React frontend:
 
 ```bash
-uv run start
+uv run sample-financials
 ```
 
 Open:
