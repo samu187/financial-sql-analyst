@@ -1,8 +1,10 @@
 # LangGraph Financial Analyst
 
-A full-stack financial analysis assistant that uses LangGraph, OpenAI, FastAPI, React, and SQLite to answer natural-language questions about company financial statements.
+A full-stack financial analysis assistant that uses LangGraph, OpenAI, FastAPI, React, MCP, and SQLite to answer natural-language questions about company financial statements.
 
 The app converts a user's finance question into a safe read-only SQL query, runs it against a sample financial database, and explains the result in plain English.
+
+The project also includes an MCP server so Claude or another MCP client can inspect the sample financial schema and run validated read-only SQL directly.
 
 ## Features
 
@@ -14,6 +16,7 @@ The app converts a user's finance question into a safe read-only SQL query, runs
 - FastAPI backend serving both API routes and the built React frontend
 - One-command app startup with `uv run start`
 - React interface showing the answer, generated SQL, query result, and safety metadata
+- MCP server exposing the sample financial schema and read-only SQL execution
 
 ## Example Questions
 
@@ -31,6 +34,7 @@ What is the current ratio for each year?
 - LangChain
 - OpenAI API
 - FastAPI
+- MCP
 - SQLite
 - React
 - Vite
@@ -53,6 +57,21 @@ LangGraph workflow
     +--> validate_sql
     +--> execute_sql
     +--> write_final_answer
+    |
+    v
+SQLite financial statements database
+```
+
+MCP clients use a narrower path:
+
+```text
+Claude or another MCP client
+    |
+    v
+sample-manufacturing-financials MCP server
+    |
+    +--> get_sample_manufacturing_financial_schema
+    +--> run_sample_manufacturing_financial_sql
     |
     v
 SQLite financial statements database
@@ -104,6 +123,7 @@ free_cash_flow = operating_cash_flow + capex
 │   ├── database.py
 │   ├── graph.py
 │   ├── main.py
+│   ├── mcp_server.py
 │   ├── run_logger.py
 │   └── static/
 ├── tests/
@@ -160,6 +180,46 @@ The app uses the bundled sample company data and creates the local SQLite databa
 data/sample_financials.sqlite
 ```
 
+## Run The MCP Server
+
+Start the MCP server over stdio:
+
+```bash
+uv run --no-editable sample-financials-mcp
+```
+
+The MCP server is named:
+
+```text
+sample-manufacturing-financials
+```
+
+It is designed for questions about Sample Manufacturing Co. financial statements. It exposes two tools:
+
+- `get_sample_manufacturing_financial_schema`: returns the SQLite tables and columns for the sample financial database.
+- `run_sample_manufacturing_financial_sql`: validates and runs one read-only SQLite `SELECT` or `WITH` query.
+
+Example Claude Desktop configuration:
+
+```json
+{
+  "mcpServers": {
+    "sample-manufacturing-financials": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--no-editable",
+        "--directory",
+        "/path/to/ai-sql",
+        "sample-financials-mcp"
+      ]
+    }
+  }
+}
+```
+
+Replace `/path/to/ai-sql` with this repository's local path.
+
 ## API
 
 Analyze a question:
@@ -188,7 +248,7 @@ GET /api/health
 Run tests:
 
 ```bash
-uv run --extra dev pytest
+uv run --no-editable --extra dev pytest
 ```
 
 If your local uv environment has a stale editable install after moving files around during development, run:

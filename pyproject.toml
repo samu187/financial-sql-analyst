@@ -21,10 +21,12 @@ dependencies = [
     "pydantic>=2.0.0",
     "rich>=13.0.0",
     "uvicorn>=0.30.0",
+    "mcp>=1.28.1",
 ]
 
 [project.scripts]
-start = "app.main:start"
+sample-financials = "app.main:start"
+sample-financials-mcp = "app.mcp_server:start"
 
 [project.optional-dependencies]
 dev = [
