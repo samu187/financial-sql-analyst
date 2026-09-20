@@ -1,5 +1,7 @@
 """Run a question, or the web placeholder."""
 
+import sys
+
 import sqlparse
 import typer
 from rich.console import Console
@@ -9,7 +11,7 @@ from analyst.graph import graph
 
 app = typer.Typer(
     no_args_is_help=True, 
-    help="Ask a question about a US stock, or use 'web' to launch the web app.", 
+    help="Ask a question with fin [ask] QUESTION, or use 'web' to launch the web app.",
     add_completion=False)
 
 
@@ -56,7 +58,10 @@ def ask(
 
 
 def main() -> None:
-    app()
+    args = sys.argv[1:]
+    if args and args[0] not in {"ask", "web", "--help"}:
+        args.insert(0, "ask")
+    app(args=args)
 
 
 if __name__ == "__main__":

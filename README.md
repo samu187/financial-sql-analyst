@@ -19,8 +19,25 @@ table with a concise explanation. No manual imports. No SQL required.
   keep the analysis easy to follow.
 
 ```sh
-fin ask "How has NVIDIA's net margin changes in the last 5 years?"
-fin ask "Compare META's operating cash flows and Capital spending (CAPEX) over the last years" --query
+fin "How has NVIDIA's net margin changed in the last 5 years?"
+fin "Compare META's operating cash flows and Capital spending (CAPEX) over the last years" --query
+```
+
+## LangGraph workflow
+
+```mermaid
+flowchart TD
+    S([Start]) --> T[Identify ticker]
+    T -->|Found| D[Download financial statements]
+    T -->|Unknown or ambiguous| E([End])
+    D -->|Data available| Q[Write SQL query]
+    D -->|Download failed| E
+    Q -->|Query available| X[Execute read-only SQL]
+    Q -->|Cannot answer| E
+    X -->|First error: retry once| Q
+    X -->|Second error| E
+    X -->|Success| A[Write final answer]
+    A --> E
 ```
 
 ## Tech stack and setup
@@ -46,6 +63,8 @@ fin --help
 ```
 
 Pass the question as one quoted argument. SQL is hidden unless you add `--query`.
+The `ask` command is optional: `fin "question"` and `fin ask "question"` run the
+same function. The `web` command and `fin --help` remain available.
 `financial-analyst` is also available as an alias for `fin`.
 
 The default model is `gpt-5.4-mini`. To choose another compatible model:

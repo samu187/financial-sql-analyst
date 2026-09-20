@@ -109,8 +109,8 @@ def write_query(state: AnalystState) -> dict:
             "For table, use an empty x_column and empty y_columns. Choose whichever result type you believe best "
             "to visualize the data resulting from your query. However for this query the only allowed "
             f"result types are {', '.join(state['allowed_result_types'])}. "
-            "If the amounts are in millions or billions, you can convert them to thousands or millions "
-            "as long as the units are consistent and specified in the column alias e.g. Revenue K, Revenue M. \n"
+            "If the amounts are in millions or billions, you should convert them to thousands or millions "
+            "as long as this is specified in the column alias e.g. Revenue (K), Revenue (M). \n"
             "If you cannot provide a query, leave result_type empty too."
             + retry_prompt
         ),
