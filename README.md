@@ -7,9 +7,10 @@ financial statement data. It identifies the company, downloads its annual
 statements, writes and runs read-only SQL, and presents the results in a clean
 table with a concise explanation. No manual imports. No SQL required.
 
-![Financial Analyst terminal demo](docs/demo.gif)
-
 ![Financial Analyst web-app demo](docs/demo2.gif)
+
+*CLI command* is also available to type questions directly in the terminal
+![Financial Analyst terminal demo](docs/demo.gif)
 
 
 - **Three statements, one question.** Analyse income statements, balance sheets,
