@@ -1,10 +1,11 @@
 """Serve the frontend and run financial questions through the graph."""
 
+import os
 from pathlib import Path
 from threading import Lock
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -26,6 +27,14 @@ class QuestionRequest(BaseModel):
 @app.post("/ask")
 def ask(request: QuestionRequest) -> dict:
     """Return the complete graph state for a financial question."""
+    if not os.environ.get("OPENAI_API_KEY", "").strip():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "OpenAI API key is missing. Set OPENAI_API_KEY in the terminal "
+                "that starts the web server, then restart the server."
+            ),
+        )
     # The downloader replaces a shared database; serialize runs in this server.
     with _graph_lock:
         return graph.invoke({

@@ -28,7 +28,14 @@ export default function AskAI({ onResult }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: submitted, allowed_result_types: ['table', 'linechart', 'barchart'] }),
       });
-      if (!response.ok) throw new Error('Could not complete your question. Please try again.');
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(
+          typeof body?.detail === 'string'
+            ? body.detail
+            : 'Could not complete your question. Please try again.',
+        );
+      }
       const state = await response.json();
       onResult(state);
       setMessages((previous) => [...previous, {
@@ -45,7 +52,7 @@ export default function AskAI({ onResult }) {
   return (
     <Stack className="chat-view" gap={0}>
       <Group component="header" className="view-header" justify="space-between">
-        <Text fw={600}>Ask AI</Text><Badge color="gray" variant="light" size="sm">Financial research</Badge>
+        <Text fw={600}>Ask AI</Text><Badge color="gray" variant="light" size="sm">SQL Financial Analyst</Badge>
       </Group>
       <Box className="conversation" aria-live="polite" aria-busy={loading}>
         <Box className="conversation-inner">

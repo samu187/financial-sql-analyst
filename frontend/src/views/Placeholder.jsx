@@ -10,7 +10,7 @@ export default function Placeholder({ title, ticker }) {
           <ThemeIcon size={56} variant="light" color="gray" radius="xl"><IconLayoutDashboard size={26} /></ThemeIcon>
           <Badge variant="light">{ticker}</Badge>
           <Title order={2}>{title}</Title>
-          <Text c="dimmed">This view is coming soon.</Text>
+          <Text c="dimmed">This page is coming soon.</Text>
         </Stack>
       </Center>
     </Stack>
