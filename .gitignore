@@ -31,3 +31,6 @@ htmlcov/
 .DS_Store
 .idea/
 .vscode/
+
+# Frontend dependencies
+node_modules/

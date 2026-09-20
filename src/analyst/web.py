@@ -1,0 +1,42 @@
+"""Serve the frontend and run financial questions through the graph."""
+
+from pathlib import Path
+from threading import Lock
+from typing import Literal
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, ConfigDict, Field
+
+from analyst.graph import graph
+
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+_graph_lock = Lock()
+
+
+class QuestionRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    question: str = Field(min_length=1)
+    allowed_result_types: list[Literal["table", "linechart", "barchart"]] = Field(
+        default_factory=lambda: ["table", "linechart", "barchart"], min_length=1
+    )
+
+
+@app.post("/ask")
+def ask(request: QuestionRequest) -> dict:
+    """Return the complete graph state for a financial question."""
+    # The downloader replaces a shared database; serialize runs in this server.
+    with _graph_lock:
+        return graph.invoke({
+            "question": request.question,
+            "allowed_result_types": request.allowed_result_types,
+            "ticker": "",
+            "message": "",
+            "query_attempts": 0,
+            "error": "",
+        })
+
+
+# Register API routes first so the frontend mount does not intercept them.
+app.mount("/", StaticFiles(directory=Path(__file__).parent / "static", html=True), name="frontend")

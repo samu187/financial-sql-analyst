@@ -1,0 +1,44 @@
+body { margin: 0; color: #252a2e; background: #fff; }
+.app-shell { height: 100dvh; display: flex; }
+.app-shell > [role='tabpanel'] { flex: 1; min-width: 0; padding: 0; }
+.sidebar { width: 248px; flex-shrink: 0; background: #f7f8fa; border-right: 1px solid #e9ecef; padding: 28px 16px 20px; }
+.brand { padding: 0 8px; }
+.navigation { gap: 5px; border: 0; }
+.navigation::before { display: none; }
+.navigation button { border: 0; border-radius: 9px; padding: 13px 12px; font-size: 13px; font-weight: 500; color: #525c65; }
+.navigation .mantine-Tabs-tabLabel { flex: 1; text-align: left; }
+.navigation button[data-active] { color: #16766a; background: #e5eeeb; }
+.navigation button:disabled { opacity: .45; }
+.company-card { border-top: 1px solid #e3e7eb; padding: 20px 10px 0; }
+.view-header { min-height: 76px; padding: 20px 34px; border-bottom: 1px solid #f0f1f3; }
+.chat-view { height: 100%; }
+.conversation { flex: 1; overflow-y: auto; min-height: 0; padding: 12px 32px 28px; }
+.conversation-inner { max-width: 800px; margin: 0 auto; }
+.welcome { padding-top: clamp(40px, 13vh, 140px); padding-bottom: 30px; }
+.welcome h1 { font-size: clamp(26px, 3vw, 36px); letter-spacing: -1.1px; line-height: 1.25; }
+.suggestion { height: auto; min-height: 88px; padding: 16px; text-align: left; font-weight: 400; background: #fcfcfd; border-color: #e9ecef; }
+.suggestion .mantine-Button-label { white-space: normal; line-height: 1.6; }
+.suggestion .mantine-Button-section { align-self: flex-start; color: #8a939a; }
+.user-message { max-width: 85%; background: #f1f3f5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.assistant-message { padding: 4px 0 12px; }
+.answer-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.result-card { border-color: #e9ecef; overflow: hidden; }
+.composer-area { padding: 16px 32px 22px; background: #fff; }
+.composer { display: flex; align-items: flex-end; gap: 12px; max-width: 800px; margin: 0 auto; }
+.composer .mantine-Textarea-root { flex: 1; min-width: 0; padding-left: 10px; }
+.composer textarea { font-size: 15px; padding-top: 8px; padding-bottom: 8px; border: 0; outline: 0; background: transparent; }
+.composer:focus-within { border-color: #9cbeb5; }
+@media (max-width: 700px) {
+  .sidebar { width: 68px; padding: 20px 8px; }
+  .sidebar-label { display: none; }
+  .brand { padding: 0; justify-content: center; margin-bottom: 32px; }
+  .navigation button { padding: 14px; justify-content: center; }
+  .navigation .mantine-Tabs-tabSection { margin: 0; }
+  .company-card { padding: 16px 0 0; }
+  .company-card .mantine-Badge-root { padding: 0 3px; font-size: 9px; width: 100%; }
+  .view-header { min-height: 64px; padding: 16px; }
+  .conversation { padding: 8px 16px 20px; }
+  .composer-area { padding: 12px 12px 16px; }
+  .welcome { padding-top: 36px; }
+  .suggestion { min-height: 58px; }
+}

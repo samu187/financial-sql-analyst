@@ -1,4 +1,4 @@
-"""Run a question, or the web placeholder."""
+"""Run a question or the web application."""
 
 import sys
 
@@ -17,8 +17,14 @@ app = typer.Typer(
 
 @app.command()
 def web() -> None:
-    """Run the web application (not implemented yet)."""
-    typer.echo("Web app coming later.")
+    """Run the web application and open it in your default browser."""
+    import webbrowser
+    from threading import Timer
+
+    import uvicorn
+
+    Timer(1.0, webbrowser.open, args=["http://127.0.0.1:8567"]).start()
+    uvicorn.run("analyst.web:app", host="127.0.0.1", port=8567, workers=1)
 
 
 @app.command()

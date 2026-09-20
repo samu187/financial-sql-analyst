@@ -86,16 +86,33 @@ three tables: `income_stmt`, `balance_sheet`, and `cashflow`. Rows represent yea
 columns represent financial metrics. Available history and metrics depend on the
 data returned by Yahoo Finance.
 
+## Web API
+
+Start the local server with `uv run fin web`; it automatically opens
+<http://127.0.0.1:8567> in your default browser after a one-second delay.
+
+`POST /ask` runs the LangGraph workflow and returns the complete final state
+as JSON, including chart metadata when a chart is selected:
+
+```sh
+curl http://127.0.0.1:8567/ask \
+  -H 'Content-Type: application/json' \
+  -d '{"question":"Show Apple revenue by year","allowed_result_types":["table","linechart","barchart"]}'
+```
+
 ## Project structure
 
 ```text
 financial-analyst/
+├── frontend/             # React source and Vite build configuration
 ├── docs/
 │   └── demo.gif          # Terminal demo (add your recording here)
 ├── src/
 │   └── analyst/
 │       ├── __init__.py
 │       ├── cli.py        # Commands, terminal tables, and optional SQL display
+│       ├── web.py        # Question API and static frontend serving
+│       ├── static/       # Built React frontend, served by the API
 │       ├── graph.py      # Ticker identification, SQL generation, execution, and answers
 │       └── data.py       # Annual statement downloads and SQLite storage
 ├── pyproject.toml        # Package metadata, dependencies, and CLI entry points
