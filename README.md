@@ -3,13 +3,15 @@
 **Ask in plain English. Get financial insights straight in your terminal.**
 
 Financial Analyst turns questions about US-listed stocks into answers backed by
-financial statement data. It identifies the company, downloads its annual
-statements, writes and runs read-only SQL, and presents the results in a clean
+financial statement data. It identifies the company, downloads its annual statements
+from Yfinance, writes and runs read-only SQL, and presents the results in a clean
 table with a concise explanation. No manual imports. No SQL required.
 
 ![Financial Analyst web-app demo](docs/demo2.gif)
 
-*CLI command* is also available to type questions directly in the terminal
+
+**CLI command** is also available to type questions directly in the terminal
+
 ![Financial Analyst terminal demo](docs/demo.gif)
 
 
