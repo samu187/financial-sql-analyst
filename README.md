@@ -9,6 +9,9 @@ table with a concise explanation. No manual imports. No SQL required.
 
 ![Financial Analyst terminal demo](docs/demo.gif)
 
+![Financial Analyst web-app demo](docs/demo2.gif)
+
+
 - **Three statements, one question.** Analyse income statements, balance sheets,
   and cash flows together.
 - **From words to numbers.** Ask about growth, margins, cash generation, and more.

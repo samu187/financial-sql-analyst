@@ -18,7 +18,8 @@ export default function AskAI({ onResult }) {
     event.preventDefault();
     if (!question.trim() || loading) return;
     const submitted = question.trim();
-    setMessages((previous) => [...previous, { role: 'user', text: submitted }]);
+    const userMessage = { role: 'user', content: submitted };
+    setMessages((previous) => [...previous, userMessage]);
     setQuestion('');
     setError('');
     setLoading(true);
@@ -26,7 +27,11 @@ export default function AskAI({ onResult }) {
       const response = await fetch('/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: submitted, allowed_result_types: ['table', 'linechart', 'barchart'] }),
+        body: JSON.stringify({
+          question: submitted,
+          messages: messages.map(({ role, content }) => ({ role, content })),
+          allowed_result_types: ['table', 'linechart', 'barchart'],
+        }),
       });
       if (!response.ok) {
         const body = await response.json().catch(() => null);
@@ -39,9 +44,10 @@ export default function AskAI({ onResult }) {
       const state = await response.json();
       onResult(state);
       setMessages((previous) => [...previous, {
-        role: 'assistant', text: state.final_message || state.message || 'No answer was returned. Try rephrasing your question.', state,
+        role: 'assistant', content: state.final_message || state.message || 'No answer was returned. Try rephrasing your question.', state,
       }]);
     } catch (error) {
+      setMessages((previous) => previous.filter((message) => message !== userMessage));
       setError(error.message === 'Failed to fetch' ? 'Could not reach the server. Check your connection and try again.' : error.message);
       setQuestion(submitted);
     } finally {
@@ -71,12 +77,12 @@ export default function AskAI({ onResult }) {
           )}
           {messages.map((message, index) => message.role === 'user' ? (
             <Group justify="flex-end" key={index} my="xl">
-              <Paper className="user-message" px="lg" py="md" radius="lg"><Text>{message.text}</Text></Paper>
+              <Paper className="user-message" px="lg" py="md" radius="lg"><Text>{message.content}</Text></Paper>
             </Group>
           ) : (
             <Box key={index} className="assistant-message" my="xl">
               <Group gap="xs" mb="sm"><ThemeIcon size={25} variant="light" radius="xl"><IconSparkles size={15} /></ThemeIcon><Text fw={600} size="sm">Financial Analyst</Text></Group>
-              <Text className="answer-text" lh={1.75}>{message.text}</Text>
+              <Text className="answer-text" lh={1.75}>{message.content}</Text>
               <QueryResult state={message.state} />
             </Box>
           ))}
@@ -97,7 +103,7 @@ export default function AskAI({ onResult }) {
             }} />
           <ActionIcon type="submit" aria-label="Send question" size={38} radius="xl" color="dark" loading={loading} disabled={!question.trim() || loading}><IconArrowUp size={20} /></ActionIcon>
         </Paper>
-        <Text ta="center" size="xs" c="dimmed" mt="sm">Include a company in each question · Shift + Enter for a new line</Text>
+        <Text ta="center" size="xs" c="dimmed" mt="sm">Ask a follow-up or name a different company · Shift + Enter for a new line</Text>
       </Box>
     </Stack>
   );

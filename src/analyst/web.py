@@ -15,10 +15,18 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 _graph_lock = Lock()
 
 
+class ChatMessage(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1)
+
+
 class QuestionRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     question: str = Field(min_length=1)
+    messages: list[ChatMessage] = Field(default_factory=list, description="Previous conversation turns, excluding the current question.")
     allowed_result_types: list[Literal["table", "linechart", "barchart"]] = Field(
         default_factory=lambda: ["table", "linechart", "barchart"], min_length=1
     )
@@ -39,6 +47,7 @@ def ask(request: QuestionRequest) -> dict:
     with _graph_lock:
         return graph.invoke({
             "question": request.question,
+            "messages": [message.model_dump() for message in request.messages],
             "allowed_result_types": request.allowed_result_types,
             "ticker": "",
             "message": "",
