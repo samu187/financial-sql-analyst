@@ -1,41 +1,36 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "financial-analyst-langgraph"
+name = "financial-analyst"
 version = "0.1.0"
-description = "A LangGraph-powered financial statement analyst using SQLite and OpenAI."
+description = "A CLI financial analyst with a US stock resolution graph."
 readme = "README.md"
-requires-python = ">=3.11"
 authors = [
-    { name = "Samuel" }
+    { name = "samu187", email = "samuel-alciati@live.it" }
 ]
+requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.115.0",
-    "langgraph>=0.2.0",
-    "langchain>=0.3.0",
-    "langchain-openai>=0.2.0",
-    "openai>=1.0.0",
-    "python-dotenv>=1.0.0",
-    "pydantic>=2.0.0",
-    "rich>=13.0.0",
-    "uvicorn>=0.30.0",
-    "mcp>=1.28.1",
+    "langgraph>=1.0,<2",
+    "openai>=2.0,<3",
+    "pydantic>=2.0,<3",
+    "typer>=0.16,<1",
+    "rich>=13,<16",
+    "sqlparse>=0.5,<1",
+    "platformdirs>=4,<5",
+    "yfinance>=0.2.65,<2",
 ]
 
 [project.scripts]
-sample-financials = "app.main:start"
-sample-financials-mcp = "app.mcp_server:start"
+financial-analyst = "analyst.cli:main"
+fin = "analyst.cli:main"
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0.0",
-    "ruff>=0.6.0",
-]
+[tool.hatch.build.targets.wheel]
+packages = ["src/analyst"]
 
-[tool.uv]
-package = true
+[tool.ruff]
+target-version = "py311"
 
-[tool.setuptools]
-packages = ["app"]
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
