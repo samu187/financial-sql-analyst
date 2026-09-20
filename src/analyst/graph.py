@@ -109,8 +109,16 @@ def write_query(state: AnalystState) -> dict:
             "For table, use an empty x_column and empty y_columns. Choose whichever result type you believe best "
             "to visualize the data resulting from your query. However for this query the only allowed "
             f"result types are {', '.join(state['allowed_result_types'])}. "
-            "If the amounts are in millions or billions, you should convert them to thousands or millions "
-            "as long as this is specified in the column alias e.g. Revenue (K), Revenue (M). \n"
+            "Make monetary totals readable by scaling them in the SQL SELECT expressions. "
+            "totals in millions: divide by 1000000.0 and round to two decimal places. "
+            "Use thousands (divide by 1000.0) for smaller totals that would round to zero in millions. "
+            "Use a consistent unit across all years and directly compared monetary columns; "
+            "never choose a different unit for each row. Label every scaled column with its unit, "
+            "for example Revenue (M) or Free Cash Flow (K). "
+            'Example: ROUND("Total Revenue" / 1000000.0, 2) AS "Revenue (M)" '
+            "Keep results numeric; do not append unit strings to values. Do not scale years, "
+            "percentages, ratios, share counts, or per-share amounts as monetary totals. "
+            "Compute ratios and growth rates using unrounded values, then round only the final output.\n"
             "If you cannot provide a query, leave result_type empty too."
             + retry_prompt
         ),
