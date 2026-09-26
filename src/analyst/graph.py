@@ -58,7 +58,7 @@ def conversation_messages(state: AnalystState) -> list[EasyInputMessageParam]:
 
 def identify_ticker(state: AnalystState) -> dict:
     response = OpenAI().responses.parse(
-        model=os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
+        model=os.getenv("OPENAI_MODEL", "gpt-6-luna"),
         instructions=(
             CONVERSATION_INSTRUCTIONS +
             "Identify the US-listed stock the user is asking about. "
@@ -103,7 +103,7 @@ def write_query(state: AnalystState) -> dict:
         )
 
     response = OpenAI().responses.parse(
-        model=os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
+        model=os.getenv("OPENAI_MODEL", "gpt-6-luna"),
         instructions=(
             CONVERSATION_INSTRUCTIONS +
             f"The database contains the three annual financial statements for {state['ticker']}.\n"
@@ -190,7 +190,7 @@ def execute_query(state: AnalystState) -> dict:
 def write_final_answer(state: AnalystState) -> dict:
     print("Analysing results...")
     response = OpenAI().responses.create(
-        model=os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
+        model=os.getenv("OPENAI_MODEL", "gpt-6-luna"),
         instructions=(
             CONVERSATION_INSTRUCTIONS +
             "Briefly answer the user's financial question using only the supplied SQL results. "
